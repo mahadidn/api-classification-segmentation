@@ -1,0 +1,6 @@
+uvicorn
+sqlmodel
+pymsql
+bcrypt
+python-jose
+python-dotenv
