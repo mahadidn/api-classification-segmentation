@@ -4,9 +4,10 @@ from contextlib import asynccontextmanager
 import bcrypt
 from app.models import Users
 from app.database import get_session, create_db_and_tables
-from app.controller import get_user_by_username, get_current_user, logoutUser, getCustomers
+from app.controller import get_user_by_username, get_current_user, logoutUser, getCustomers, addCustomerController, updateCustomerController, deleteCustomerController
 from app.auth import hash_password, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from datetime import timedelta
+from typing import Union
     
 
 @asynccontextmanager
@@ -84,11 +85,7 @@ def login(
             "username" : user.username,
             "name" : user.name
         }
-    }
-                
-            
-            
-        
+    }    
     
 @app.get("/user")
 def protected_route(current_user: Users = Depends(get_current_user)):
@@ -103,11 +100,75 @@ def get_customers(current_user: Users = Depends(get_current_user), page: int = Q
         "data" : customers
     }
 
-# create customers (not finish yet)
+# create customers 
 @app.post("/customer")
-def addCustomer(currentUser: Users = Depends(get_current_user)):
+def addCustomer(
+        gender: str = Form("gender"),
+        ever_married: str = Form("ever_married"),
+        age: int = Form("age"),
+        graduated: str = Form("graduated"),
+        profession: str = Form("profession"),
+        spending_score: str = Form("spending_score"),
+        family_size: str = Form("family_size"),
+        segmentation: str = Form("segmentation"),
+        currentUser: Users = Depends(get_current_user)
+    ):
+    
+    newCustomer = addCustomerController(
+        gender=gender,
+        ever_married=ever_married,
+        age=age,
+        graduated=graduated,
+        profession=profession,
+        spending_score=spending_score,
+        family_size=family_size,
+        segmentation=segmentation
+    )
+    
     return {
-        "status" : "success"
+        "status" : "success",
+        "customer" : newCustomer
+    }
+    
+# update customers
+@app.put("/customer/{item_id}")
+def updateCustomer(
+                item_id: int, 
+                gender: str = Form("gender"),
+                ever_married: str = Form("ever_married"),
+                age: int = Form("age"),
+                graduated: str = Form("graduated"),
+                profession: str = Form("profession"),
+                spending_score: str = Form("spending_score"),
+                family_size: str = Form("family_size"),
+                segmentation: str = Form("segmentation"),
+                currentUser: Users = Depends(get_current_user)
+    ):
+    
+    isSuccess = updateCustomerController(
+        item_id=item_id,
+        gender=gender,
+        ever_married=ever_married,
+        age=age,
+        graduated=graduated,
+        profession=profession,
+        spending_score=spending_score,
+        family_size=family_size,
+        segmentation=segmentation
+    )
+    
+    return {
+        "success" : isSuccess
+    }
+    
+# delete customers
+@app.delete('/customer/{item_id}')
+def deleteCustomer(item_id: int, currentUser: Users = Depends(get_current_user)):
+    
+    isSuccess = deleteCustomerController(item_id)
+    
+    return {
+        "success" : isSuccess
     }
 
 # Untuk logout (katanya jwt tidak bisa di destroy)

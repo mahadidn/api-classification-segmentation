@@ -7,11 +7,6 @@ class Users(SQLModel, table=True):
     username: str = Field(unique=True)
     password: str = Field()
     
-# class Refresh_token(SQLModel, table=True):
-#     id: int | None = Field(default=None, primary_key=True)
-#     token: str = Field()
-#     username: str = Field()
-
 class Data_customers(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     gender: str = Field()

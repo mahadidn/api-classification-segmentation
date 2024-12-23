@@ -57,7 +57,61 @@ def getCustomers(page: int, size: int):
             "data" : dataCustomers
             
         }
-    
+# add customer 
+def addCustomerController(gender: str, ever_married: str, age: int, graduated: str, profession: str, spending_score: str, family_size: str, segmentation: str):
+    with Session(engine) as session:
+        newCustomer = Data_customers(gender=gender, ever_married=ever_married, age=age, graduated=graduated, profession=profession, spending_score=spending_score, family_size=family_size, segmentation=segmentation)
+        session.add(newCustomer)
+        session.commit()
+        session.refresh(newCustomer)
+        
+        return newCustomer
+
+# update customer
+def updateCustomerController(item_id: int, gender: str, ever_married: str, age: int, graduated: str, profession: str, spending_score: str, family_size: str, segmentation: str):
+    with Session(engine) as session:
+        
+        statement = select(Data_customers).where(Data_customers.id == item_id)
+        dataCustomer = session.exec(statement).first()
+        
+        if not dataCustomer:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail= "Data tidak ditemukan"
+            )
+        
+        dataCustomer.gender = gender
+        dataCustomer.ever_married = ever_married
+        dataCustomer.age = age
+        dataCustomer.graduated = graduated
+        dataCustomer.profession = profession
+        dataCustomer.spending_score = spending_score
+        dataCustomer.family_size = family_size
+        dataCustomer.segmentation = segmentation
+        
+        session.add(dataCustomer)
+        session.commit()
+        session.refresh(dataCustomer)
+        
+        return True
+        
+# delete customer
+def deleteCustomerController(item_id: int):
+    with Session(engine) as session:
+        statement = select(Data_customers).where(Data_customers.id == item_id)
+        dataCustomer = session.exec(statement).first()
+        
+        if not dataCustomer:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail= "Data tidak ditemukan"
+            )
+        
+        # hapus data dari database
+        session.delete(dataCustomer)
+        session.commit()
+        
+        return True
 
 def logoutUser(token: str = Depends(oauth2_scheme)):
     """
