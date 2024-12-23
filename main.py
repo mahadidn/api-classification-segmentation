@@ -1,10 +1,10 @@
-from fastapi import FastAPI, Form, HTTPException, Depends
+from fastapi import FastAPI, Form, HTTPException, Depends, Query
 from sqlmodel import Session
 from contextlib import asynccontextmanager
 import bcrypt
 from app.models import Users
 from app.database import get_session, create_db_and_tables
-from app.dependencies import get_user_by_username, get_current_user, logoutUser
+from app.controller import get_user_by_username, get_current_user, logoutUser, getCustomers
 from app.auth import hash_password, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from datetime import timedelta
     
@@ -94,7 +94,23 @@ def login(
 def protected_route(current_user: Users = Depends(get_current_user)):
     return {"message": f"Welcome {current_user.name}!"}
 
-# Untuk logout bakal di update nanti (katanya jwt tidak bisa di destroy)
+# CRUD Data Customers
+# get customers
+@app.get("/customer")
+def get_customers(current_user: Users = Depends(get_current_user), page: int = Query(default=1, gt=0)):
+    customers = getCustomers(page, 15)
+    return {
+        "data" : customers
+    }
+
+# create customers (not finish yet)
+@app.post("/customer")
+def addCustomer(currentUser: Users = Depends(get_current_user)):
+    return {
+        "status" : "success"
+    }
+
+# Untuk logout (katanya jwt tidak bisa di destroy)
 @app.post("/logout")
 def logout(tokenData: dict = Depends(logoutUser)):
     
