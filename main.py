@@ -7,7 +7,7 @@ from app.database import get_session, create_db_and_tables
 from app.controller import get_user_by_username, get_current_user, logoutUser, getCustomers, addCustomerController, updateCustomerController, deleteCustomerController
 from app.auth import hash_password, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from datetime import timedelta
-from typing import Union
+from app.model.naivebayes import naivebayes
     
 
 @asynccontextmanager
@@ -160,6 +160,33 @@ def updateCustomer(
     return {
         "success" : isSuccess
     }
+
+# klasifikasi
+@app.post('/customer/classification/naivebayes')
+def classification(
+    current_user: Users = Depends(get_current_user), 
+    gender: str = Form("gender"),
+    ever_married: str = Form("ever_married"),
+    age: int = Form("age"),
+    graduated: str = Form("graduated"),
+    profession: str = Form("profession"),
+    spending_score: str = Form("spending_score"),
+    family_size: str = Form("family_size"),
+    ):
+    
+    message = naivebayes(
+        age=age,
+        gender=gender,
+        ever_married=ever_married,
+        graduated=graduated,
+        profession=profession,
+        spending_Score=spending_score,
+        family_size=family_size
+    )
+        
+    return {
+        "message" : message
+    }
     
 # delete customers
 @app.delete('/customer/{item_id}')
@@ -171,19 +198,8 @@ def deleteCustomer(item_id: int, currentUser: Users = Depends(get_current_user))
         "success" : isSuccess
     }
 
-# Untuk logout (katanya jwt tidak bisa di destroy)
+# Untuk logout 
 @app.post("/logout")
 def logout(tokenData: dict = Depends(logoutUser)):
     
     return {"message": "Success"}
-
-
-# @app.get("/items/{item_id}")
-# def read_item(item_id: int, q: Union[str, None] = None):
-#     return {"item_id": item_id, "q": q}
-
-
-# @app.get("/tes/{tes}")
-# def tes(tes: str):
-#     return {"coba" : tes}
-

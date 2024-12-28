@@ -38,6 +38,14 @@ def get_current_user(token: str = Depends(oauth2_scheme), session: Session = Dep
         raise credentials_exception
     return user
 
+# get all customers
+def getAllCustomers():
+    with Session(engine) as session:
+        statement = select(Data_customers)
+        dataCustomers = session.exec(statement).all()
+        
+        return dataCustomers
+
 # get data customers
 def getCustomers(page: int, size: int):
     with Session(engine) as session:
