@@ -6,14 +6,16 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.model_selection import GridSearchCV
 
-import seaborn as sns                       
-import matplotlib.pyplot as plt     
 from ..controller import getAllCustomers
 from .preprocessing import preprocessing
-        
 
-sns.set(color_codes=True)
-
+# Mapping untuk mengganti key
+key_mapping = {
+    '0': 'A',
+    '1': 'B',
+    '2': 'C',
+    '3': 'D'
+}
 
 def saveData():
     # Ambil data pelanggan dari fungsi getAllCustomers
@@ -29,6 +31,14 @@ def saveData():
     df.to_csv("./dataset/customers_data.csv", index=False)
 
     return {"message": "Data saved to customers_data.csv successfully!"}
+
+
+# Fungsi untuk mengganti key
+def ubah_key_laporan(report):
+    
+    return {
+        key_mapping.get(key, key): value for key, value in report.items()
+    }
 
 def naivebayes(age, profession, family_size, graduated, ever_married, gender, spending_Score):
     
@@ -69,23 +79,28 @@ def naivebayes(age, profession, family_size, graduated, ever_married, gender, sp
     model = GridSearchCV(estimator=gnb, param_grid=params, cv=10, scoring='accuracy')
     model.fit(X_train, y_train)
     
-    print("Best params: ", model.best_params_)
-    print("Best score: ", model.best_score_)
+    # print("Best params: ", model.best_params_)
+    # print("Best score: ", model.best_score_)
     
     # Prediksi pada data validasi
     y_val_pred = model.predict(X_val)
     
+    akurasiValidasi = accuracy_score(y_val, y_val_pred)
+    reportValidasi = classification_report(y_val, y_val_pred, output_dict=True)
 
     # Evaluasi
-    print("Accuracy pada data validasi:", accuracy_score(y_val, y_val_pred))
-    print("Classification Report (Validasi):\n", classification_report(y_val, y_val_pred))
+    # print("Accuracy pada data validasi:", akurasiValidasi)
+    # print("Classification Report (Validasi):\n", reportValidasi)
 
     # Prediksi pada data testing
     y_test_pred = model.predict(X_test)
 
+    akurasiTest = accuracy_score(y_test, y_test_pred)
+    reportTest = classification_report(y_test, y_test_pred, output_dict=True)
+
     # Evaluasi
-    print("Accuracy pada data testing:", accuracy_score(y_test, y_test_pred))
-    print("Classification Report (Testing):\n", classification_report(y_test, y_test_pred))
+    # print("Accuracy pada data testing:", akurasiTest)
+    # print("Classification Report (Testing):\n", reportTest)
     
     # klasifikasi data
     # Data baru (tanpa segmentasi)
@@ -148,7 +163,7 @@ def naivebayes(age, profession, family_size, graduated, ever_married, gender, sp
     # print("tabel atas")
     # print(X_val)
     # print("tabel predik")
-    print(data_baru)
+    # print(data_baru)
 
     # Prediksi segmentasi
     prediction = model.predict(data_baru)
@@ -164,8 +179,30 @@ def naivebayes(age, profession, family_size, graduated, ever_married, gender, sp
     elif(prediction[0] == 3):
         prediksi = 'D'
     
-    print("Predicted Segmentation:", prediksi)
+    # print("Predicted Segmentation:", prediksi)
+    # print("Report validasi: ")
+    # print(reportValidasi)
 
+    data_baru = pd.DataFrame({
+        'age': [age],
+        'profession': [profession],
+        'family_size': [family_size],
+        'gender': [gender],
+        'graduated': [graduated],
+        'ever_married': [ever_married],
+        'spending_score': [spending_Score],
+    })
 
-    return "success"
+    # Ubah key dari angka jadi huruf kaya di data aslinya pada reportValidasi dan reportTest
+    reportValidasi = ubah_key_laporan(reportValidasi)
+    reportTest = ubah_key_laporan(reportTest)
+
+    return {
+        "data" : data_baru.to_dict(orient='records'),
+        "segmentasi" : prediksi,
+        "akurasi validasi" : akurasiValidasi,
+        "validasi" : reportValidasi,
+        "akurasi testing" : akurasiTest,
+        "test" : reportTest
+    }
     
