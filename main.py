@@ -9,7 +9,7 @@ from app.auth import hash_password, create_access_token, ACCESS_TOKEN_EXPIRE_MIN
 from datetime import timedelta
 from app.model.naivebayes import naivebayes
 from app.model.extremelearningmachine import extremelearningmachine
-    
+from fastapi.middleware.cors import CORSMiddleware
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -17,6 +17,14 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], 
+    allow_credentials=True,
+    allow_methods=["*"], 
+    allow_headers=["*"],
+)
 
 # testing home
 @app.get("/")
@@ -96,7 +104,7 @@ def protected_route(current_user: Users = Depends(get_current_user)):
 # get customers
 @app.get("/customer")
 def get_customers(current_user: Users = Depends(get_current_user), page: int = Query(default=1, gt=0)):
-    customers = getCustomers(page, 15)
+    customers = getCustomers(page, 10)
     return {
         "data" : customers
     }

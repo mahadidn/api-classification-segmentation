@@ -118,10 +118,12 @@ def naivebayes(age, profession, family_size, graduated, ever_married, gender, sp
         data_baru['profession'][0] = 4
     elif(data_baru['profession'][0] == 'Healthcare'):
         data_baru['profession'][0] = 5
-    elif(data_baru['profession'][0] == 'Lawyer'):
+    elif(data_baru['profession'][0] == 'Homemaker'):
         data_baru['profession'] = 6
+    elif(data_baru['profession'][0] == 'Lawyer'):
+        data_baru['profession'] = 7
     elif(data_baru['profession'][0] == 'Marketing'):
-        data_baru['profession'][0] = 7
+        data_baru['profession'][0] = 8
     # spending score
     if(data_baru['spending_score'][0] == 'Low'):
         data_baru['spending_score'][0] = 2
