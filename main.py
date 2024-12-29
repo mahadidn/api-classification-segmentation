@@ -8,6 +8,7 @@ from app.controller import get_user_by_username, get_current_user, logoutUser, g
 from app.auth import hash_password, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from datetime import timedelta
 from app.model.naivebayes import naivebayes
+from app.model.extremelearningmachine import extremelearningmachine
     
 
 @asynccontextmanager
@@ -175,6 +176,32 @@ def classification(
     ):
     
     message = naivebayes(
+        age=age,
+        gender=gender,
+        ever_married=ever_married,
+        graduated=graduated,
+        profession=profession,
+        spending_Score=spending_score,
+        family_size=family_size
+    )
+        
+    return {
+        "message" : message
+    }
+
+@app.post('/customer/classification/elm')
+def elm(
+    current_user: Users = Depends(get_current_user), 
+    gender: str = Form("gender"),
+    ever_married: str = Form("ever_married"),
+    age: int = Form("age"),
+    graduated: str = Form("graduated"),
+    profession: str = Form("profession"),
+    spending_score: str = Form("spending_score"),
+    family_size: str = Form("family_size"),
+    ):
+    
+    message = extremelearningmachine(
         age=age,
         gender=gender,
         ever_married=ever_married,

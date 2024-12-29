@@ -1,13 +1,12 @@
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
 from sklearn.naive_bayes import GaussianNB
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.model_selection import GridSearchCV
 
-from ..controller import getAllCustomers
-from .preprocessing import preprocessing
+from ..controller import saveDataToCsv
+from .preprocessing import preprocessingNB
 
 # Mapping untuk mengganti key
 key_mapping = {
@@ -17,20 +16,6 @@ key_mapping = {
     '3': 'D'
 }
 
-def saveData():
-    # Ambil data pelanggan dari fungsi getAllCustomers
-    data_customers = getAllCustomers()
-
-    # Konversi data ke format list of dictionaries
-    data_as_dicts = [customer.dict() for customer in data_customers]
-
-    # Buat DataFrame menggunakan Pandas
-    df = pd.DataFrame(data_as_dicts)
-
-    # Simpan ke file CSV
-    df.to_csv("./dataset/customers_data.csv", index=False)
-
-    return {"message": "Data saved to customers_data.csv successfully!"}
 
 
 # Fungsi untuk mengganti key
@@ -42,31 +27,20 @@ def ubah_key_laporan(report):
 
 def naivebayes(age, profession, family_size, graduated, ever_married, gender, spending_Score):
     
-    saveData()
+    saveDataToCsv()
     
     # get data
     df = pd.read_csv('./dataset/customers_data.csv')
     
     # preprocessing
-    df = preprocessing(df=df)
+    X, y = preprocessingNB(df=df)
     
-    # Encode fitur kategorikal
-    label_encoders = {}
-    categorical_columns = ['gender', 'ever_married', 'graduated', 'profession', 'spending_score', 'segmentation']
-
-    for col in categorical_columns:
-        le = LabelEncoder()
-        df[col] = le.fit_transform(df[col])
-        label_encoders[col] = le
     
-    # Pisahkan fitur dan target
-    X = df.drop('segmentation', axis=1)
-    y = df['segmentation']
 
-    # Split data: 70% training, 30% temp (validasi + testing)
+    # split data: 70% training, 30% temp (validasi + testing)
     X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3, random_state=42, stratify=y)
 
-    # Split temp menjadi 20% validasi dan 10% testing
+    # split temp jadi 20% validasi dan 10% testing
     X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.33, random_state=42, stratify=y_temp)
 
     # untuk hyperparameter tuning
@@ -85,7 +59,7 @@ def naivebayes(age, profession, family_size, graduated, ever_married, gender, sp
     # Prediksi pada data validasi
     y_val_pred = model.predict(X_val)
     
-    akurasiValidasi = accuracy_score(y_val, y_val_pred)
+    # akurasiValidasi = accuracy_score(y_val, y_val_pred)
     reportValidasi = classification_report(y_val, y_val_pred, output_dict=True)
 
     # Evaluasi
@@ -95,7 +69,7 @@ def naivebayes(age, profession, family_size, graduated, ever_married, gender, sp
     # Prediksi pada data testing
     y_test_pred = model.predict(X_test)
 
-    akurasiTest = accuracy_score(y_test, y_test_pred)
+    # akurasiTest = accuracy_score(y_test, y_test_pred)
     reportTest = classification_report(y_test, y_test_pred, output_dict=True)
 
     # Evaluasi
@@ -200,9 +174,7 @@ def naivebayes(age, profession, family_size, graduated, ever_married, gender, sp
     return {
         "data" : data_baru.to_dict(orient='records'),
         "segmentasi" : prediksi,
-        "akurasi validasi" : akurasiValidasi,
         "validasi" : reportValidasi,
-        "akurasi testing" : akurasiTest,
         "test" : reportTest
     }
     

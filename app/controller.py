@@ -1,5 +1,3 @@
-# app/dependencies.py
-
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlmodel import Session, select, create_engine
@@ -9,6 +7,7 @@ from .auth import decode_access_token, SECRET_KEY, ALGORITHM_SECURE
 from datetime import datetime ,timedelta
 from jose import JWTError, jwt
 from sqlalchemy import func
+import pandas as pd
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 engine = create_engine(DATABASE_URL, echo=True)
@@ -120,6 +119,20 @@ def deleteCustomerController(item_id: int):
         session.commit()
         
         return True
+def saveDataToCsv():
+    # Ambil data customer dari fungsi getAllCustomers
+    data_customers = getAllCustomers()
+
+    # Konversi data ke format list of dictionaries
+    data_as_dicts = [customer.dict() for customer in data_customers]
+
+    # Buat DataFrame menggunakan Pandas
+    df = pd.DataFrame(data_as_dicts)
+
+    # Simpan ke file CSV
+    df.to_csv("./dataset/customers_data.csv", index=False)
+
+    return {"message": "Data berhasil disimpan"}
 
 def logoutUser(token: str = Depends(oauth2_scheme)):
     """
