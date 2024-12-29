@@ -35,7 +35,7 @@ def preprocessingELM(df: DataFrame):
     df = df.drop(['id'], axis=1)
     
     # Pisahkan fitur dan target
-    X = df.drop(columns=["segmentation"])  # Ganti 'Segmentation' dengan nama kolom target
+    X = df.drop(columns=["segmentation"])  
     y = df["segmentation"]
 
     # Identifikasi kolom numerik dan kategorikal
@@ -57,5 +57,14 @@ def preprocessingELM(df: DataFrame):
     # Encode target label (y) menjadi numerik
     label_encoder = LabelEncoder()
     y_encoded = label_encoder.fit_transform(y)
+    # hilangkan data baru pada y yang sudah i encode
+    y_encoded = y_encoded[:-1]
     
-    return X, y_encoded, preprocessor
+    X = preprocessor.fit_transform(X)
+    
+    # sebelumnya data barunya ikut di transform agar data baru bisa dilakukan prediksi, setelah itu pisahkan data barunya
+    data_baru_encode = X[-1].reshape(1, -1)
+    # hilangkan data baru pada matrix X
+    X = X[:-1]
+    
+    return X, y_encoded, data_baru_encode

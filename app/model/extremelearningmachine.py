@@ -30,8 +30,21 @@ def extremelearningmachine(age, profession, family_size, graduated, ever_married
 
     # df = pd.read_csv("./customersegment/cobacustomer_segment.csv", sep=",")
     df = pd.read_csv('./dataset/customers_data.csv')
+
+
+    data_baru = pd.DataFrame({
+        'age': [int(age)],
+        'profession': [profession],
+        'family_size': [int(family_size)],
+        'gender': [gender],
+        'graduated': [graduated],
+        'ever_married': [ever_married],
+        'spending_score': [spending_Score],
+    })
     
-    X, y_encoded, preprocessor = preprocessingELM(df=df)
+    df = pd.concat([df, data_baru], ignore_index=True)
+    
+    X, y_encoded, data_baru_enocode = preprocessingELM(df=df)
 
     # Split 70% training, 30% validasi + testing
     X_train, X_temp, y_train, y_temp = train_test_split(
@@ -44,9 +57,9 @@ def extremelearningmachine(age, profession, family_size, graduated, ever_married
     )
 
     # Terapkan preprocessing pada fitur
-    X_train = preprocessor.fit_transform(X_train)
-    X_val = preprocessor.transform(X_val)
-    X_test = preprocessor.transform(X_test)
+    # X_train = preprocessor.fit_transform(X_train)
+    # X_val = preprocessor.transform(X_val)
+    # X_test = preprocessor.transform(X_test)
 
     # One-hot encoding untuk target
     onehot_encoder = OneHotEncoder(sparse_output=False)
@@ -83,6 +96,19 @@ def extremelearningmachine(age, profession, family_size, graduated, ever_married
     reportValidasi = ubah_key_laporan(reportValidasi)
     reportTest = ubah_key_laporan(reportTest)
     
+    y_baru = elm.predict(data_baru_enocode)
+    y_baru_label = y_baru.argmax(axis=1)
+    prediksi = ''
+    
+    if(y_baru_label[0] == 0):
+        prediksi = 'A'
+    elif(y_baru_label[0] == 1):
+        prediksi = 'B'
+    elif(y_baru_label[0] == 2):
+        prediksi = 'C'
+    elif(y_baru_label[0] == 3):
+        prediksi = 'D'
+    
     data_baru = pd.DataFrame({
         'age': [age],
         'profession': [profession],
@@ -93,11 +119,6 @@ def extremelearningmachine(age, profession, family_size, graduated, ever_married
         'spending_score': [spending_Score],
     })
     
-    print(X_test)
-    
-    # lanjut disini untuk data barunya
-    prediksi = 'A'
-
     # Cetak bobot dan bias acak
     # print("Bobot acak (input ke hidden):", elm.nnet.get_W())  # Bobot antara input dan hidden
     # print("Bias acak (hidden layer):", elm.nnet.get_B())     # Bias pada hidden layer
