@@ -62,7 +62,7 @@ def preprocessingELM(df: DataFrame):
     
     X = preprocessor.fit_transform(X)
     
-    # sebelumnya data barunya ikut di transform agar data baru bisa dilakukan prediksi, setelah itu pisahkan data barunya
+    # sebelumnya data barunya ikut di transform agar data baru bisa dilakukan prediksi
     data_baru_encode = X[-1].reshape(1, -1)
     # hilangkan data baru pada matrix X
     X = X[:-1]

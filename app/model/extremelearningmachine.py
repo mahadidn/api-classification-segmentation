@@ -56,16 +56,9 @@ def extremelearningmachine(age, profession, family_size, graduated, ever_married
         X_temp, y_temp, test_size=0.3333, random_state=42, stratify=y_temp
     )
 
-    # Terapkan preprocessing pada fitur
-    # X_train = preprocessor.fit_transform(X_train)
-    # X_val = preprocessor.transform(X_val)
-    # X_test = preprocessor.transform(X_test)
-
     # One-hot encoding untuk target
     onehot_encoder = OneHotEncoder(sparse_output=False)
     y_train_oh = onehot_encoder.fit_transform(y_train.reshape(-1, 1))
-    # y_val_oh = onehot_encoder.transform(y_val.reshape(-1, 1))
-    # y_test_oh = onehot_encoder.transform(y_test.reshape(-1, 1))
 
     # Train ELM dengan data training
     elm = ELM(X_train.shape[1], y_train_oh.shape[1], classification="c", accelerator="basic")
@@ -74,7 +67,7 @@ def extremelearningmachine(age, profession, family_size, graduated, ever_married
 
     # Validasi dengan data validasi
     y_val_pred = elm.predict(X_val)
-    y_val_pred_labels = y_val_pred.argmax(axis=1)  # Konversi probabilitas menjadi label kelas
+    y_val_pred_labels = y_val_pred.argmax(axis=1)  
 
     
     
@@ -87,8 +80,7 @@ def extremelearningmachine(age, profession, family_size, graduated, ever_married
 
     # Evaluasi testing
     # print("Classification Report (Test):\n", classification_report(y_test, y_test_pred_labels))
-    # Ubah key dari angka jadi huruf kaya di data aslinya pada reportValidasi dan reportTest
-
+    
     # buat laporan akurasi untuk dikirim lewat json
     reportValidasi = classification_report(y_val, y_val_pred_labels, output_dict=True)
     reportTest = classification_report(y_test, y_test_pred_labels, output_dict=True)
