@@ -1,11 +1,9 @@
 import pandas as pd
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.preprocessing import LabelEncoder         
+from sklearn.preprocessing import OneHotEncoder    
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from hpelm import ELM
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, accuracy_score
 from .preprocessing import preprocessingELM
 from ..controller import saveDataToCsv
 
@@ -44,7 +42,7 @@ def extremelearningmachine(age, profession, family_size, graduated, ever_married
     
     df = pd.concat([df, data_baru], ignore_index=True)
     
-    X, y_encoded, data_baru_enocode = preprocessingELM(df=df)
+    X, y_encoded, data_baru_encode = preprocessingELM(df=df)
 
     # Split 70% training, 30% validasi + testing
     X_train, X_temp, y_train, y_temp = train_test_split(
@@ -60,35 +58,48 @@ def extremelearningmachine(age, profession, family_size, graduated, ever_married
     onehot_encoder = OneHotEncoder(sparse_output=False)
     y_train_oh = onehot_encoder.fit_transform(y_train.reshape(-1, 1))
 
-    # Train ELM dengan data training
-    elm = ELM(X_train.shape[1], y_train_oh.shape[1], classification="c", accelerator="basic")
-    elm.add_neurons(50, "sigm")  # 50 neuron dengan fungsi aktivasi sigmoid
-    elm.train(X_train, y_train_oh, "c")
+    bestValScore = 0
+    usedNeuron = 0
+    bestFunction = ""
+    
+    fungsiAktivasi = {
+        "fungsi" : ["sigm", "tanh", "rbf_l2"]
+    }
+    
+    for neurons in range(10, 100):
+        
+        for aktivasi in fungsiAktivasi['fungsi']:
+            
+            # Train ELM dengan data training
+            elm = ELM(X_train.shape[1], y_train_oh.shape[1], classification="c", accelerator="basic")
+            elm.add_neurons(neurons, aktivasi)  
+            elm.train(X_train, y_train_oh, "c")
 
-    # Validasi dengan data validasi
-    y_val_pred = elm.predict(X_val)
-    y_val_pred_labels = y_val_pred.argmax(axis=1)  
-
+            # Validasi dengan data validasi
+            y_val_pred = elm.predict(X_val)
+            y_val_pred_labels = y_val_pred.argmax(axis=1)  
+            valScore = accuracy_score(y_val, y_val_pred_labels)
+            
+            if valScore > bestValScore:
+                bestValScore = valScore
+                bestModel = elm
+                usedNeuron = neurons
+                bestFunction = aktivasi
     
     
-    # Evaluasi validasi
-    # print("Classification Report (Validation):\n", classification_report(y_val, y_val_pred_labels))
-
     # Testing dengan data testing
-    y_test_pred = elm.predict(X_test)
-    y_test_pred_labels = y_test_pred.argmax(axis=1)  # Konversi probabilitas menjadi label kelas
+    y_test_pred = bestModel.predict(X_test)
+    y_test_pred_labels = y_test_pred.argmax(axis=1)  
 
     # Evaluasi testing
     # print("Classification Report (Test):\n", classification_report(y_test, y_test_pred_labels))
     
     # buat laporan akurasi untuk dikirim lewat json
-    reportValidasi = classification_report(y_val, y_val_pred_labels, output_dict=True)
     reportTest = classification_report(y_test, y_test_pred_labels, output_dict=True)
 
-    reportValidasi = ubah_key_laporan(reportValidasi)
     reportTest = ubah_key_laporan(reportTest)
     
-    y_baru = elm.predict(data_baru_enocode)
+    y_baru = elm.predict(data_baru_encode)
     y_baru_label = y_baru.argmax(axis=1)
     prediksi = ''
     
@@ -117,6 +128,7 @@ def extremelearningmachine(age, profession, family_size, graduated, ever_married
     return {
         "data" : data_baru.to_dict(orient='records'),
         "segmentasi" : prediksi,
-        "validasi" : reportValidasi,
-        "test" : reportTest
+        "test" : reportTest,
+        "jumlahNeuron" : usedNeuron,
+        "fungsiAktivasi" : bestFunction,
     }
