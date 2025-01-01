@@ -43,39 +43,32 @@ def naivebayes(age, profession, family_size, graduated, ever_married, gender, sp
     # split temp jadi 20% validasi dan 10% testing
     X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.33, random_state=42, stratify=y_temp)
 
-    # untuk hyperparameter tuning
-    params = {'var_smoothing' : np.logspace(0, -9, num=100)}
-    
     # model
     gnb = GaussianNB()
+    bestScore = 0
+    bestParam = None
     
-    # gaussian naive bayes di tuning menggunakan grid search
-    model = GridSearchCV(estimator=gnb, param_grid=params, cv=10, scoring='accuracy')
-    model.fit(X_train, y_train)
-    
-    # print("Best params: ", model.best_params_)
-    # print("Best score: ", model.best_score_)
-    
-    # Prediksi pada data validasi
-    y_val_pred = model.predict(X_val)
-    
-    # akurasiValidasi = accuracy_score(y_val, y_val_pred)
-    reportValidasi = classification_report(y_val, y_val_pred, output_dict=True)
-
-    # Evaluasi
-    # print("Accuracy pada data validasi:", akurasiValidasi)
-    # print("Classification Report (Validasi):\n", reportValidasi)
+    # validasi lalu cari parameter terbaik
+    for v in np.logspace(0, -9, num=100):
+        gnb.set_params(var_smoothing=v)
+        gnb.fit(X_train, y_train)
+        y_val_pred = gnb.predict(X_val)
+        score = accuracy_score(y_val, y_val_pred)
+        
+        if(score > bestScore):
+            bestScore = score
+            bestParam = v
+            
+    # pakai gnb dengan parameter terbaik
+    gnb.set_params(var_smoothing=bestParam)
+    gnb.fit(X_train, y_train)
 
     # Prediksi pada data testing
-    y_test_pred = model.predict(X_test)
+    y_test_pred = gnb.predict(X_test)
 
     # akurasiTest = accuracy_score(y_test, y_test_pred)
     reportTest = classification_report(y_test, y_test_pred, output_dict=True)
 
-    # Evaluasi
-    # print("Accuracy pada data testing:", akurasiTest)
-    # print("Classification Report (Testing):\n", reportTest)
-    
     # klasifikasi data
     # Data baru (tanpa segmentasi)
     data_baru = pd.DataFrame({
@@ -134,15 +127,8 @@ def naivebayes(age, profession, family_size, graduated, ever_married, gender, sp
     
     data_baru = data_baru[X_val.columns]
 
-    # print("tabel bawah")
-    # print(df)
-    # print("tabel atas")
-    # print(X_val)
-    # print("tabel predik")
-    # print(data_baru)
-
     # Prediksi segmentasi
-    prediction = model.predict(data_baru)
+    prediction = gnb.predict(data_baru)
     
     prediksi = ''
     
@@ -155,9 +141,6 @@ def naivebayes(age, profession, family_size, graduated, ever_married, gender, sp
     elif(prediction[0] == 3):
         prediksi = 'D'
     
-    # print("Predicted Segmentation:", prediksi)
-    # print("Report validasi: ")
-    # print(reportValidasi)
 
     data_baru = pd.DataFrame({
         'age': [age],
@@ -169,14 +152,12 @@ def naivebayes(age, profession, family_size, graduated, ever_married, gender, sp
         'spending_score': [spending_Score],
     })
 
-    # Ubah key dari angka jadi huruf kaya di data aslinya pada reportValidasi dan reportTest
-    reportValidasi = ubah_key_laporan(reportValidasi)
+    # Ubah key dari angka jadi huruf kaya di data aslinya pada reportTest
     reportTest = ubah_key_laporan(reportTest)
 
     return {
         "data" : data_baru.to_dict(orient='records'),
         "segmentasi" : prediksi,
-        "validasi" : reportValidasi,
         "test" : reportTest
     }
     
