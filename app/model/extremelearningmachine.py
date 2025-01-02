@@ -99,7 +99,7 @@ def extremelearningmachine(age, profession, family_size, graduated, ever_married
 
     reportTest = ubah_key_laporan(reportTest)
     
-    y_baru = elm.predict(data_baru_encode)
+    y_baru = bestModel.predict(data_baru_encode)
     y_baru_label = y_baru.argmax(axis=1)
     prediksi = ''
     
